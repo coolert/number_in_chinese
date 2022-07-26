@@ -1,0 +1,27 @@
+{
+    "name": "coolert\/number_in_chinese",
+    "description": "Convert numbers to Chinese characters",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "coolert",
+            "email": "keith920627@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Coolert\\NumberInChinese\\": "./src/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "mockery/mockery": "^1.5"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Coolert\\NumberInChinese\\ServiceProvider"
+            ]
+        }
+    }
+}
