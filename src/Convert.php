@@ -2,23 +2,32 @@
 
 namespace Coolert\NumberInChinese;
 
-use Coolert\NumberInChinese\Exceptions\ExtentionException;
+use Coolert\NumberInChinese\Exceptions\ExtensionException;
 use Coolert\NumberInChinese\Exceptions\InvalidArgumentException;
 
 class Convert
 {
     public function __construct()
     {
-        if (\extension_loaded('bcmath') === false) {
-            throw new ExtentionException('Disabled extension bcmath');
+        if ($this->check_bcmath() === false) {
+            throw new ExtensionException('Disabled extension bcmath');
         }
-        if (\extension_loaded('mbstring') === false) {
-            throw new ExtentionException('Disabled extension mbstring');
+        if ($this->check_mbstring() === false) {
+            throw new ExtensionException('Disabled extension mbstring');
         }
     }
 
-    public function toChineseCharacters($number)
+    public function check_bcmath()
     {
+        return \extension_loaded('bcmath');
+    }
+
+    public function check_mbstring()
+    {
+        return \extension_loaded('mbstring');
+    }
+
+    public function toChineseCharacters($number)    {
         if (!\is_numeric($number)) {
             throw new InvalidArgumentException('Invalid value number: ' . $number);
         }

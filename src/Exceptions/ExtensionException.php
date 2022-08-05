@@ -2,7 +2,7 @@
 
 namespace Coolert\NumberInChinese\Exceptions;
 
-class ExtentionException extends Excepiton
+class ExtensionException extends Excepiton
 {
 
 }
