@@ -7,27 +7,37 @@ use Coolert\NumberInChinese\Exceptions\InvalidArgumentException;
 
 class Convert
 {
+    protected $extension = ['bcmath','mbstring'];
+
+    /**
+     * @throws ExtensionException
+     */
     public function __construct()
     {
-        if ($this->check_bcmath() === false) {
-            throw new ExtensionException('Disabled extension bcmath');
+        $extensions = [];
+        foreach ($this->extension as $name) {
+            $extensions[$name] = \extension_loaded($name) === true;
         }
-        if ($this->check_mbstring() === false) {
-            throw new ExtensionException('Disabled extension mbstring');
+        $this->extensionException($extensions);
+    }
+
+    /**
+     * @throws ExtensionException
+     */
+    public function extensionException($extensions)
+    {
+        foreach ($extensions as $name => $state) {
+            if ($state === false) {
+                throw new ExtensionException('Disabled extension ' . $name);
+            }
         }
     }
 
-    public function check_bcmath()
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function toChineseCharacters($number)
     {
-        return \extension_loaded('bcmath');
-    }
-
-    public function check_mbstring()
-    {
-        return \extension_loaded('mbstring');
-    }
-
-    public function toChineseCharacters($number)    {
         if (!\is_numeric($number)) {
             throw new InvalidArgumentException('Invalid value number: ' . $number);
         }
@@ -36,8 +46,7 @@ class Convert
         }
         $dic = ['零','一', '二', '三', '四', '五', '六', '七', '八', '九', '十',];
         $unit_dic = ['无量大数','万','亿','兆','京','垓','秭','穰','沟','涧','正','载','极','恒河沙','阿僧祇','那由他','不可思议'];
-        $num_array = \array_reverse(\str_split($number));
-        $num_arr_chunk =  \array_chunk($num_array,68);
+        $num_arr_chunk =  \array_chunk(\array_reverse(\str_split($number)),68);
         $complete_str = '';
         foreach ($num_arr_chunk as $cycle => $num_arr){
             $length = \count($num_arr);
@@ -89,21 +98,17 @@ class Convert
         } elseif ($start > $string_length) {
             $start = $string_length;
         }
-
         if ($length < 0) {
             $length = \max(0, $string_length - $start + $length);
         } elseif ((\is_null($length) === true) || ($length > $string_length)) {
             $length = $string_length;
         }
-
         if (($start + $length) > $string_length) {
             $length = $string_length - $start;
         }
-
         if (\is_null($encoding) === true) {
             return \mb_substr($string, 0, $start) . $replacement . \mb_substr($string, $start + $length, $string_length - $start - $length);
         }
-
         return \mb_substr($string, 0, $start, $encoding) . $replacement . \mb_substr($string, $start + $length, $string_length - $start - $length, $encoding);
     }
 }
