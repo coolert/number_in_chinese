@@ -2,8 +2,10 @@
 
 namespace Coolert\NumberInChinese;
 
+use Coolert\NumberInChinese\Exceptions\DictionarySetException;
 use Coolert\NumberInChinese\Exceptions\ExtensionException;
 use Coolert\NumberInChinese\Exceptions\InvalidArgumentException;
+use Coolert\NumberInChinese\Exceptions\TypeSetException;
 
 /**
  * Class Convert
@@ -16,6 +18,10 @@ class Convert
     const SIMPLE_UNIT_DIC = ['无量大数','万','亿','兆','京','垓','秭','穰','沟','涧','正','载','极','恒河沙','阿僧祇','那由他','不可思议'];
     const TRADITION_UNIT_DIC = ['無量大數','萬','億','兆','京','垓','秭','穰','溝','澗','正','載','極','恆河沙','阿僧祇','那由他','不可思議'];
     const EXTENSION = ['bcmath','mbstring'];
+
+    public $dic;
+    public $unit_dic;
+    public $type;
 
     /**
      * @throws ExtensionException
@@ -55,59 +61,23 @@ class Convert
      * @return string
      *
      * @throws InvalidArgumentException
+     * @throws DictionarySetException
+     * @throws TypeSetException
      */
-    public function toChineseCharacters($number,$character = 1,$unit = 1)
+    public function convertNumbers($number,$character = 1,$unit = 1)
     {
-        $number = $this->format_number($number);
-        if (!\is_string($number)) {
-            throw new InvalidArgumentException('Invalid type number, must be a string: ' . $number);
+        $number = $this->formatNumber($number);
+        $this->selectDictionaries($character, $unit);
+        if ($this->type == 'float') {
+            $number_arr = \explode('.', $number);
+            $integer_part = $this->convertInteger($number_arr[0]);
+            $decimal_part = $this->convertDecimal($number_arr[1]);
+            return $integer_part . '点' . $decimal_part;
+        } elseif ($this->type == 'int') {
+            return $this->convertInteger($number);
+        } else {
+            throw new TypeSetException('Invalid type set');
         }
-        if (\preg_match('/^\d+(\.{0,1}\d+){0,1}$/', $number) === 0) {
-            throw new InvalidArgumentException('Invalid value number: ' . $number);
-        }
-        $dic = $this->selectDictionary($character);
-        $unit_dic = $this->selectUnitDictionary($unit);
-        $num_arr_chunk =  \array_chunk(\array_reverse(\str_split($number)),68);
-        $complete_str = '';
-        foreach ($num_arr_chunk as $cycle => $num_arr){
-            $length = \count($num_arr);
-            $match_unit_digits = $length%4 == 0 ? \bcdiv($length, 4) : \bcdiv($length, 4)+1;
-            $chunk_unit_dic = \array_slice($unit_dic, 0, $match_unit_digits);
-            if ($cycle == 0) {
-                $chunk_unit_dic[0] = '';
-            }
-            for ($a = 0; $a < $match_unit_digits; $a++) {
-                \array_splice($chunk_unit_dic, $a*4+1, 0, ['十', '百', '千',]);
-            }
-            $chinese_num = '';
-            foreach ($num_arr as $key => $value) {
-                if ($key % 4 == 0) {
-                    if ($key > 4 && $chunk_unit_dic[$key-4] == \mb_substr($chinese_num,0,1)){
-                        $chinese_num = $this->mbSubStrReplace($chinese_num,'',0,1);
-                        if (\mb_substr($chinese_num, 0, 1) != $dic[0]) {
-                            $chinese_num = $dic[0].$chinese_num;
-                        }
-                    }
-                    $chinese_num = ($value == 0 && $length != 1 ? '' : $dic[$value]).$chunk_unit_dic[$key].$chinese_num;
-                } else {
-                    if ($value == 0 && $chinese_num == ''){
-                        $chinese_num = ''.$chinese_num;
-                    }elseif ($value == 0 && $chinese_num != ''){
-                        if ($num_arr[$key-1] != 0){
-                            $chinese_num = $dic[0].$chinese_num;
-                        }
-                    }else{
-                        if ($value == 1 && $length%4 == 2 && $length == $key+1){
-                            $chinese_num = $chunk_unit_dic[$key].$chinese_num;
-                        }else{
-                            $chinese_num = $dic[$value].$chunk_unit_dic[$key].$chinese_num;
-                        }
-                    }
-                }
-            }
-            $complete_str = $chinese_num.$complete_str;
-        }
-        return $complete_str;
     }
 
     /**
@@ -144,15 +114,14 @@ class Convert
     }
 
     /**
-     * Select chinese character dictionary.
+     * Select character dictionary and unit dictionary.
      *
-     * @param int $character  1 简体 2 繁体
+     * @param int $character
+     * @param int $unit
      *
-     * @return array
-     *
-     * @throws InvalidArgumentException
+     * @throws DictionarySetException
      */
-    public function selectDictionary($character)
+    public function selectDictionaries($character, $unit)
     {
         switch ($character) {
             case 1:
@@ -165,22 +134,9 @@ class Convert
                 $dic = self::UPPER_DIC;
                 break;
             default:
-                throw new InvalidArgumentException('Invalid character type');
+                throw new DictionarySetException('Invalid dictionary type');
         }
-        return $dic;
-    }
-
-    /**
-     * Select unit dictionary.
-     *
-     * @param int $unit
-     *
-     * @return array
-     *
-     * @throws InvalidArgumentException
-     */
-    public function selectUnitDictionary($unit)
-    {
+        $this->dic = $dic;
         switch ($unit) {
             case 1:
                 $unit_dic = self::SIMPLE_UNIT_DIC;
@@ -189,28 +145,127 @@ class Convert
                 $unit_dic = self::TRADITION_UNIT_DIC;
                 break;
             default:
-                throw new InvalidArgumentException('Invalid unit type');
+                throw new DictionarySetException('Invalid unit dictionary type');
         }
-        return $unit_dic;
+        $this->unit_dic = $unit_dic;
     }
 
     /**
-     * Format data into usable numbers.
+     * Check input data and format data into usable numbers.
      *
      * @param $number
      *
      * @return string
+     *
+     * @throws InvalidArgumentException
      */
-    public function format_number($number)
+    public function formatNumber($number)
     {
-        $number = ltrim(trim(str_replace(' ','', $number), ' \t\n\r'),'\0\x0B');
-        $pos_dot = strpos($number,'.');
+        if (!\is_string($number)) {
+            throw new InvalidArgumentException('Invalid number type, must be a string');
+        }
+        $number = \ltrim(\trim(\str_replace(' ','', $number), ' \t\n\r'),'\0\x0B');
+        $pos_dot = \strpos($number,'.');
         if ($pos_dot !== false) {
             if ($pos_dot === 0) {
                 $number = '0' . $number;
             }
-            $number = rtrim(rtrim($number, '0'), '.');
+            $number = \rtrim(\rtrim($number, '0'), '.');
+        }
+        if (\preg_match('/^\d+(\.{0,1}\d+){0,1}$/', $number) === 0) {
+            throw new InvalidArgumentException('Invalid value number: ' . $number);
+        }
+        if (\strpos($number, '.') === false) {
+            $this->type = 'int';
+        } else {
+            $this->type = 'float';
         }
         return $number;
+    }
+
+    /**
+     * Convert integer part.
+     *
+     * @param $integer
+     *
+     * @return string
+     *
+     * @throws DictionarySetException
+     */
+    public function convertInteger($integer)
+    {
+        if (empty($this->dic)) {
+            throw new DictionarySetException('Dictionary is not set');
+        }
+        if (empty($this->unit_dic)) {
+            throw new DictionarySetException('Unit dictionary is not set');
+        }
+        $num_arr_chunk =  \array_chunk(\array_reverse(\str_split($integer)),68);
+        $complete_str = '';
+        foreach ($num_arr_chunk as $cycle => $num_arr){
+            $length = \count($num_arr);
+            $match_unit_digits = $length%4 == 0 ? \bcdiv($length, 4) : \bcdiv($length, 4)+1;
+            $chunk_unit_dic = \array_slice($this->unit_dic, 0, $match_unit_digits);
+            if ($cycle == 0) {
+                $chunk_unit_dic[0] = '';
+            }
+            for ($a = 0; $a < $match_unit_digits; $a++) {
+                if ($this->dic == $this::UPPER_DIC) {
+                    \array_splice($chunk_unit_dic, $a*4+1, 0, ['拾', '百', '千',]);
+                } else {
+                    \array_splice($chunk_unit_dic, $a*4+1, 0, ['十', '百', '千',]);
+                }
+            }
+            $chinese_num = '';
+            foreach ($num_arr as $key => $value) {
+                if ($key % 4 == 0) {
+                    if ($key > 4 && $chunk_unit_dic[$key-4] == \mb_substr($chinese_num,0,1)){
+                        $chinese_num = $this->mbSubStrReplace($chinese_num,'',0,1);
+                        if (\mb_substr($chinese_num, 0, 1) != $this->dic[0]) {
+                            $chinese_num = $this->dic[0].$chinese_num;
+                        }
+                    }
+                    $chinese_num = ($value == 0 && $length != 1 ? '' : $this->dic[$value]).$chunk_unit_dic[$key].$chinese_num;
+                } else {
+                    if ($value == 0 && $chinese_num == ''){
+                        $chinese_num = ''.$chinese_num;
+                    }elseif ($value == 0 && $chinese_num != ''){
+                        if ($num_arr[$key-1] != 0){
+                            $chinese_num = $this->dic[0].$chinese_num;
+                        }
+                    }else{
+                        if ($value == 1 && $length%4 == 2 && $length == $key+1){
+                            $chinese_num = $chunk_unit_dic[$key].$chinese_num;
+                        }else{
+                            $chinese_num = $this->dic[$value].$chunk_unit_dic[$key].$chinese_num;
+                        }
+                    }
+                }
+            }
+            $complete_str = $chinese_num.$complete_str;
+        }
+        return $complete_str;
+    }
+
+    /**
+     * Convert decimal part.
+     *
+     * @param $decimal
+     *
+     * @return string
+     *
+     * @throws DictionarySetException
+     */
+    public function convertDecimal($decimal)
+    {
+        if (empty($this->dic)) {
+            throw new DictionarySetException('Dictionary is not set');
+        }
+        $num_arr = \str_split($decimal);
+        $converted_str = '';
+        foreach ($num_arr as $v) {
+            $converted_str .= $this->dic[$v];
+        }
+        return $converted_str;
     }
 }
