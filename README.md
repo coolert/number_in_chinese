@@ -1,6 +1,6 @@
-<h1> number_in_chinese </h1>
+<h1 align="center"> number_in_chinese </h1>
 
-<p>将数字转换为中文汉字。支持整数与浮点数，简繁体输出，目前不支持负数。</p>
+<p align="center">将数字转换为中文汉字。支持整数与浮点数，简繁体输出，目前不支持负数。</p>
 
 
 ## 安装
