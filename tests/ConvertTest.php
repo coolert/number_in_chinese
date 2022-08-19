@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the coolert/number_in_chinese.
+ *
+ * (c) coolert <keith920627@gmail.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 namespace Coolert\NumberInChinese\Tests;
 
 use Coolert\NumberInChinese\Convert;
@@ -38,12 +47,12 @@ class ConvertTest extends TestCase
     public function testFormatNumber()
     {
         $convert = new Convert();
-        $this->assertSame('12340',$convert->formatNumber('\r\x0B 000  123 40 \t\n  '));
+        $this->assertSame('12340', $convert->formatNumber('\r\x0B 000  123 40 \t\n  '));
         $this->assertSame('0.04', $convert->formatNumber('00.040'));
-        $this->assertSame('12',$convert->formatNumber('12.00'));
-        $this->assertSame('0',$convert->formatNumber('00.00'));
+        $this->assertSame('12', $convert->formatNumber('12.00'));
+        $this->assertSame('0', $convert->formatNumber('00.00'));
         $convert->formatNumber('10');
-        $this->assertSame('int',$convert->type);
+        $this->assertSame('int', $convert->type);
         $convert->formatNumber('1.3');
         $this->assertSame('float', $convert->type);
     }
@@ -71,7 +80,7 @@ class ConvertTest extends TestCase
         $convert = new Convert();
         $this->expectException(DictionarySetException::class);
         $this->expectExceptionMessage('Invalid dictionary type');
-        $convert->selectDictionaries(4,1);
+        $convert->selectDictionaries(4, 1);
         $this->fail('Failed to assert selectDictionaries throw exception with invalid dictionary type.');
     }
 
@@ -80,20 +89,20 @@ class ConvertTest extends TestCase
         $convert = new Convert();
         $this->expectException(DictionarySetException::class);
         $this->expectExceptionMessage('Invalid unit dictionary type');
-        $convert->selectDictionaries(1,3);
+        $convert->selectDictionaries(1, 3);
         $this->fail('Failed to assert selectDictionaries throw exception with invalid unit dictionary type.');
     }
 
     public function testSelectDictionaries()
     {
         $convert = new Convert();
-        $convert->selectDictionaries(1,1);
+        $convert->selectDictionaries(1, 1);
         $this->assertSame($convert->dic, $convert::SIMPLE_DIC);
         $this->assertSame($convert->unit_dic, $convert::SIMPLE_UNIT_DIC);
-        $convert->selectDictionaries(2,2);
+        $convert->selectDictionaries(2, 2);
         $this->assertSame($convert->dic, $convert::SIMPLE_SPEC_DIC);
         $this->assertSame($convert->unit_dic, $convert::TRADITION_UNIT_DIC);
-        $convert->selectDictionaries(3,2);
+        $convert->selectDictionaries(3, 2);
         $this->assertSame($convert->dic, $convert::UPPER_DIC);
     }
 
@@ -162,8 +171,8 @@ class ConvertTest extends TestCase
     public function testConvertNumbers()
     {
         $convert = new Convert();
-        $this->assertSame('十二亿三千四百五十六万七千八百九十',$convert->convertNumbers('1234567890'));
-        $this->assertSame('十二亿三千四百五十六万七千八百九十点八七五',$convert->convertNumbers('1234567890.875'));
-        $this->assertSame('十二亿三千四百五十六万七千八百九十',$convert->convertNumbers('0001234567890.000'));
+        $this->assertSame('十二亿三千四百五十六万七千八百九十', $convert->convertNumbers('1234567890'));
+        $this->assertSame('十二亿三千四百五十六万七千八百九十点八七五', $convert->convertNumbers('1234567890.875'));
+        $this->assertSame('十二亿三千四百五十六万七千八百九十', $convert->convertNumbers('0001234567890.000'));
     }
 }
