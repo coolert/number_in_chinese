@@ -175,7 +175,10 @@ class Convert
         if (!\is_string($number)) {
             throw new InvalidArgumentException('Invalid number type, must be a string');
         }
-        $number = \ltrim(\trim(\str_replace(' ', '', $number), ' \t\n\r'), '\0\x0B');
+        $number = \trim(\str_replace(' ', '', $number), ' \t\n\r');
+        if ($number !== 0) {
+            $number = \ltrim($number,'\0\x0B');
+        }
         $pos_dot = \strpos($number, '.');
         if (false !== $pos_dot) {
             if (0 === $pos_dot) {
@@ -240,7 +243,7 @@ class Convert
                     $chinese_num = (0 == $value && 1 != $length ? '' : $this->dic[$value]).$chunk_unit_dic[$key].$chinese_num;
                 } else {
                     if (0 == $value && '' == $chinese_num) {
-                        $chinese_num = ''.$chinese_num;
+                        continue;
                     } elseif (0 == $value && '' != $chinese_num) {
                         if (0 != $num_arr[$key - 1]) {
                             $chinese_num = $this->dic[0].$chinese_num;
