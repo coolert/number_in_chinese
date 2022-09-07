@@ -4,6 +4,10 @@
 
 [![Tests](https://github.com/coolert/number_in_chinese/actions/workflows/tests.yml/badge.svg)](https://github.com/coolert/number_in_chinese/actions/workflows/tests.yml)
 ![StyleCI build status](https://github.styleci.io/repos/517887313/shield)
+[![Code Coverage](https://scrutinizer-ci.com/g/coolert/number_in_chinese/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/coolert/number_in_chinese/?branch=master)
+<a href="https://packagist.org/packages/coolert/number_in_chinese"><img src="https://poser.pugx.org/coolert/number_in_chinese/v/stable.svg" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/coolert/number_in_chinese"><img src="https://poser.pugx.org/coolert/number_in_chinese/v/unstable.svg" alt="Latest Unstable Version"></a>
+<a href="https://packagist.org/packages/coolert/number_in_chinese"><img src="https://poser.pugx.org/coolert/number_in_chinese/license" alt="License"></a>
 ## 环境需求
 
 - PHP >= 7.3
