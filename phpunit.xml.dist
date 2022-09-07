@@ -4,6 +4,12 @@
     <include>
       <directory suffix=".php">src/</directory>
     </include>
+    <exclude>
+      <file>src/ServiceProvider.php</file>
+    </exclude>
+    <report>
+      <clover outputFile="clover.xml"/>
+    </report>
   </coverage>
   <testsuites>
     <testsuite name="Application Test Suite">

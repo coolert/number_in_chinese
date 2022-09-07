@@ -178,4 +178,13 @@ class ConvertTest extends TestCase
         $this->assertSame('十二亿三千四百五十六万七千八百九十点八七五', $convert->convertNumbers('1234567890.875'));
         $this->assertSame('十二亿三千四百五十六万七千八百九十', $convert->convertNumbers('0001234567890.000'));
     }
+
+    public function testMbSubStrReplace()
+    {
+        $convert = new Convert();
+        $this->assertSame('一', $convert->mbSubStrReplace('十一','','0','1'));
+        $this->assertSame('十一', $convert->mbSubStrReplace('十一','','-1','-1'));
+        $this->assertSame('十一', $convert->mbSubStrReplace('十一','','3'));
+        $this->assertSame('三四五六七八九十', $convert->mbSubStrReplace('一二三四五六七八九十','','0','6','ASCII'));
+    }
 }

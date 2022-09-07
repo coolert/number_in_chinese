@@ -1,7 +1,9 @@
 <h1 align="center"> number_in_chinese </h1>
 
-<p align="center">将数字转换为中文汉字。支持整数与浮点数，简繁体输出，目前不支持负数。</p>
+<p align="center">将数字转换为中文汉字的简单php组件。支持整数与浮点数，简繁体输出，目前不支持负数。</p>
 
+[![Tests](https://github.com/coolert/number_in_chinese/actions/workflows/tests.yml/badge.svg)](https://github.com/coolert/number_in_chinese/actions/workflows/tests.yml)
+![StyleCI build status](https://github.styleci.io/repos/517887313/shield)
 ## 环境需求
 
 - PHP >= 7.3
