@@ -176,8 +176,8 @@ class Convert
             throw new InvalidArgumentException('Invalid number type, must be a string');
         }
         $number = \trim(\str_replace(' ', '', $number), ' \t\n\r');
-        if ($number !== 0) {
-            $number = \ltrim($number,'\0\x0B');
+        if (0 !== $number) {
+            $number = \ltrim($number, '\0\x0B');
         }
         $pos_dot = \strpos($number, '.');
         if (false !== $pos_dot) {
